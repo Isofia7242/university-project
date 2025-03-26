@@ -36,6 +36,7 @@
 		"@sveltejs/package": "^2.0.0",
 		"@sveltejs/vite-plugin-svelte": "^5.0.0",
 		"publint": "^0.3.2",
+		"sass": "^1.86.0",
 		"svelte": "^5.0.0",
 		"svelte-check": "^4.0.0",
 		"typescript": "^5.0.0",
@@ -43,5 +44,9 @@
 	},
 	"keywords": [
 		"svelte"
-	]
+	],
+	"dependencies": {
+		"three": "^0.174.0",
+		"three-orbitcontrols": "^2.110.3"
+	}
 }

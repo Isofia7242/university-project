@@ -1,0 +1,31 @@
+* {
+  box-sizing: border-box;
+  background-color: #0063bc;
+  font-family: "Baloo Chettan 2", sans-serif;
+}
+
+.canvas-container {
+  scroll-snap-align: center;
+  height: 100vh;
+  display: grid;
+}
+h1.title{
+  grid-column: 1;
+  grid-row: 1;
+
+  color: #eee;
+  font-size: 60px;
+  z-index: 1;
+  height: fit-content;
+  width: fit-content;
+  margin: 0 auto;
+  background-color: transparent;
+}
+canvas{
+  grid-row: 1;
+  grid-column: 1;
+  display: block;
+  flex-grow: 1;
+  max-width: 100%;
+  z-index: 0;
+}
