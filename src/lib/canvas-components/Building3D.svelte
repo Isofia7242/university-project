@@ -1,7 +1,7 @@
 <script lang="ts">
     import {onMount} from 'svelte';
-    import {getNewCanvas} from "../services/canvas.js";
-    import {createBaseFloor, createHorizontalWall, createVerticalWall} from "../services/building-components.svelte.js";
+    import {getNewCanvas} from "$lib/services/canvas.js";
+    import {createBaseFloor, createHorizontalWall, createVerticalWall} from "$lib/services/building-components.svelte.js";
 
     let {title}: { title?: string } = $props();
     let canvas;

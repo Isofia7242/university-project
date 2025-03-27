@@ -1,5 +1,5 @@
 <div class="hero">
-    <h1>Web-based 3D building model presentation with info panels, videos, floor breakdowns, and dynamic display.</h1>
+    <h1>Webalapú 3D épületmodell bemutató információs panelekkel, videókkal, szintbontással és dinamikus megjelenítéssel.</h1>
     <div class="details">
         <h2>Ruppe Dávid</h2>
         <h2>BF8HM4</h2>
