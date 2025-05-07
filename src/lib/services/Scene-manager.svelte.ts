@@ -43,6 +43,8 @@ export class SceneManager {
     removeObject(index: number, level: number) {
         this.clearUp(this.sceneObjectList[level][index].object);
         this.sceneObjectList[level].splice(index, 1);
+        // check if empty array
+        if(!this.sceneObjectList[level].length){this.removeLevel(level)}
         this.sceneObjectList = [...this.sceneObjectList];
     }
 
@@ -55,6 +57,12 @@ export class SceneManager {
         this.scene.add(
             modifiedWall
         )
+    }
+    removeLevel(level: number){
+        for (let i = level; i < this.sceneObjectList.length; i++) {
+            this.sceneObjectList[i].map(x => {x.level -= 1; x.object.position.y -= defaultWallHeight})
+        }
+        this.sceneObjectList.splice(level, 1);
     }
 
     private clearUp(sceneObject: THREE.Mesh) {
