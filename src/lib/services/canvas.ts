@@ -5,7 +5,7 @@ export function getNewCanvas(canvas: HTMLCanvasElement){
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x000020);
 
-    const camera = new THREE.PerspectiveCamera(100, (window.innerWidth / 2) / window.innerHeight, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(100, (window.innerWidth / 2) / window.innerHeight, 0.1, 2000);
     const renderer = new THREE.WebGLRenderer({canvas: canvas});
     const controls = new OrbitControls(camera, renderer.domElement);
 

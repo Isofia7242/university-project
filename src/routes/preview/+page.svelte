@@ -1,7 +1,14 @@
 <script lang="ts">
-    import HeroSection from "$lib/HeroSection.svelte";
-    import Editor from "$lib/canvas-components/Editor.svelte";
-    import type {SceneObject} from "$lib/services/Scene-manager.svelte.js";
+    import * as THREE from 'three';
+    import {SceneManager, type SceneObject} from "$lib/services/Scene-manager.svelte.js";
+    import {onMount, untrack} from "svelte";
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import {createBaseFloor} from "$lib/services/building-components.svelte.js";
+
+    let canvas: HTMLCanvasElement;
+    let scene: THREE.scene;
+    let sceneManager = new SceneManager();
+    let displayedLayers = $state(0);
     let initData: SceneObject[][] = [
         [
             {
@@ -1904,17 +1911,96 @@
             }
         ]
     ] as SceneObject[][];
+
+
+    function getNewCanvas(canvas: HTMLCanvasElement){
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000020);
+
+        const camera = new THREE.PerspectiveCamera(100, (window.innerWidth) / window.innerHeight, 10, 2000);
+        const renderer = new THREE.WebGLRenderer({canvas: canvas});
+        const controls = new OrbitControls(camera, renderer.domElement);
+
+        controls.update();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        camera.position.set(700, 800, 300);
+        camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+        const light = new THREE.HemisphereLight( 0xffffbb, 0x080820, 1 );
+        scene.add( light );
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        return scene;
+    }
+    onMount(() => {
+        scene = getNewCanvas(canvas);
+        scene.add(
+            createBaseFloor(0, undefined, 1500, 1500),
+        )
+        sceneManager.scene = scene;
+        initData.map(level => {
+            level.map(ob => {
+                if (ob.objectType === "floor") {
+                    sceneManager.addFloorToScene(ob.p1, ob.p2, ob.objectType, ob.level, ob.p3!, ob.p4!)
+                } else {
+                    sceneManager.addObjectToScene(ob.p1, ob.p2, ob.objectType, ob.level)
+                }
+            })
+        })
+        displayedLayers = sceneManager.sceneObjectList.length - 1;
+        $effect(() => {
+            displayedLayers;
+            untrack(() => {
+                sceneManager.sceneObjectList.map((level, index) => {
+                    if (index <= displayedLayers) {
+                        level.map(object => scene.add(object.object));
+                    } else {
+                        level.map(object => scene.remove(object.object));
+                    }
+                })
+            })
+        })
+    })
+
 </script>
 
-<div class="page">
-    <Editor title="Editor" {initData}/>
+<div class="container">
+    <div class="button-container">
+        {#each Array(sceneManager.sceneObjectList.length) as _, index}
+            <button onclick={() => {displayedLayers = index}} class:active={displayedLayers >= index}>{index}. level
+            </button>
+        {/each}
+    </div>
+    <canvas bind:this={canvas}></canvas>
 </div>
 
 <style lang="scss">
-  .page {
-    max-height: 100vh;
-    scroll-snap-type: y mandatory;
-    overflow: auto;
-    background-color: $color-1;
-  }
+    .container{
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      .button-container{
+        position: absolute;
+        bottom: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px;
+        button{
+          border: none;
+          padding: 10px;
+          border-radius: 10px;
+          transition: background-color 0.5s;
+          &.active{
+            background-color: orangered;
+          }
+        }
+      }
+    }
 </style>

@@ -248,6 +248,7 @@
         bottom: 0;
         button{
           border: none;
+          transition: background-color 0.5s;
           &.active{
             background-color: orangered;
           }
