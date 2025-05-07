@@ -159,7 +159,7 @@ export function createFloor(p1: Point, p2: Point, p3: Point, p4: Point, color: n
 
     const extrudeSettings = {
         steps: 1,
-        depth: 1, // vastagság
+        depth: 2, // vastagság
         bevelEnabled: false
     };
 
@@ -169,7 +169,7 @@ export function createFloor(p1: Point, p2: Point, p3: Point, p4: Point, color: n
 
     // Y irányba fektetés
     floor.rotation.x = -Math.PI / 2;
-    floor.position.set(0 - Correction, 1, p2.x - Correction);
+    floor.position.set(0 - Correction, -1, p2.x - Correction);
     floor.receiveShadow = true;
 
     return floor;

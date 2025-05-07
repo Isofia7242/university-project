@@ -45,7 +45,7 @@
                 if (points.length === 2 && selectedObjectType != "floor") {
                     sceneManager.addObjectToScene(points[0], points[1], selectedObjectType, selectedObjectLevel);
                     points = [];
-                }else if (points.length === 4){
+                } else if (points.length === 4) {
                     sceneManager.addObjectToScene(points[0], points[1], selectedObjectType, selectedObjectLevel, points[2], points[3]);
                     points = [];
                 }
@@ -91,17 +91,19 @@
         <canvas bind:this={canvas} class:expanded={isCanvasExpanded}></canvas>
         <div role="none" class="editor" bind:this={editor} onclick={() => {placePoint()}}
              onmousemove={handleMouseMove}>
-            {#each sceneManager.sceneObjectList as level}
+            {#each sceneManager.sceneObjectList as level, levelIndex}
                 {#each level as wall, index}
-                    <div class="point" class:selected={selectedCard === index}
+                    {@const activeLevel = levelIndex === selectedObjectLevel}
+                    {@const selected = selectedCard === index && activeLevel}
+                    <div class="point" class:faded={!activeLevel} class:selected={selected}
                          style="--x: {wall.p1.x}px; --y: {wall.p1.y}px">
-                        {#if index === selectedCard}
+                        {#if selected}
                             p1
                         {/if}
                     </div>
-                    <div class="point" class:selected={selectedCard === index}
+                    <div class="point" class:faded={!activeLevel} class:selected={selected}
                          style="--x: {wall.p2.x}px; --y: {wall.p2.y}px">
-                        {#if index === selectedCard}
+                        {#if selected}
                             p2
                         {/if}
                     </div>
@@ -113,34 +115,37 @@
             <div class="point cursor" style="--x: {x}px; --y: {y}px"></div>
         </div>
         <div class="object-container">
-            {#each sceneManager.sceneObjectList as level}
-                {#each level as wall, index}
-                    {@const point1 = {x: wall.p1.x, y: wall.p1.y}}
-                    {@const point2 = {x: wall.p2.x, y: wall.p2.y}}
-                    <div role="none" class="card" onmouseenter={() => {selectedCard = index}}
-                         onfocus={() => {selectedCard = index}}>
-                        <p class="card-title">{wall.objectType} {index + 1}</p>
-                        <div class="p-input">
-                            <p>Point1: </p>
-                            <input type="number" max="999" bind:value="{point1.x}"
-                                   onchange={() => sceneManager.modifyObject(index, point1, point2)}>
-                            <input type="number" max="999" bind:value="{point1.y}"
-                                   onchange={() => sceneManager.modifyObject(index, point1, point2)}>
+            {#each sceneManager.sceneObjectList as level, levelIndex}
+                {@const activeLevel = levelIndex === selectedObjectLevel}
+                {#if activeLevel}
+                    {#each level as wall, index}
+                        {@const point1 = {x: wall.p1.x, y: wall.p1.y}}
+                        {@const point2 = {x: wall.p2.x, y: wall.p2.y}}
+                        <div role="none" class="card" onmouseenter={() => {selectedCard = index}}
+                             onfocus={() => {selectedCard = index}}>
+                            <p class="card-title">{wall.objectType} {index + 1}</p>
+<!--                            <div class="p-input">-->
+<!--                                <p>Point1: </p>-->
+<!--                                <input type="number" max="999" bind:value="{point1.x}"-->
+<!--                                       onchange={() => sceneManager.modifyObject(index, point1, point2, selectedObjectLevel)}>-->
+<!--                                <input type="number" max="999" bind:value="{point1.y}"-->
+<!--                                       onchange={() => sceneManager.modifyObject(index, point1, point2, selectedObjectLevel)}>-->
+<!--                            </div>-->
+<!--                            <div class="p-input">-->
+<!--                                <p>Point2: </p>-->
+<!--                                <input type="number" max="999" bind:value="{point2.x}"-->
+<!--                                       onchange={() => sceneManager.modifyObject(index, point1, point2, selectedObjectLevel)}>-->
+<!--                                <input type="number" max="999" bind:value="{point2.y}"-->
+<!--                                       onchange={() => sceneManager.modifyObject(index, point1, point2, selectedObjectLevel)}>-->
+<!--                            </div>-->
+                            <div role="none" class="icon-container" onclick={() => sceneManager.removeObject(index, selectedObjectLevel)}>
+                                <svg viewBox="0 0 448 512">
+                                    <path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z"/>
+                                </svg>
+                            </div>
                         </div>
-                        <div class="p-input">
-                            <p>Point2: </p>
-                            <input type="number" max="999" bind:value="{point2.x}"
-                                   onchange={() => sceneManager.modifyObject(index, point1, point2)}>
-                            <input type="number" max="999" bind:value="{point2.y}"
-                                   onchange={() => sceneManager.modifyObject(index, point1, point2)}>
-                        </div>
-                        <div role="none" class="icon-container" onclick={() => sceneManager.removeObject(index)}>
-                            <svg viewBox="0 0 448 512">
-                                <path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z"/>
-                            </svg>
-                        </div>
-                    </div>
-                {/each}
+                    {/each}
+                {/if}
             {/each}
         </div>
     </div>
@@ -222,7 +227,7 @@
           width: var(--width);
           border-radius: 100%;
           aspect-ratio: 1;
-          background-color: rgba(193, 0, 0, 0.4);
+          background-color: rgba(193, 0, 0, 0.5);
 
           &.cursor {
             --width: 20px;
@@ -238,6 +243,10 @@
             --width: 26px;
             background-color: orangered;
             text-align: center;
+          }
+
+          &.faded {
+            opacity: 0.6;
           }
         }
 
@@ -297,8 +306,10 @@
             position: absolute;
             right: 10px;
             top: 10px;
-            width: 40px;
-            height: 40px;
+            //width: 40px;
+            //height: 40px;
+            width: 20px;
+            height: 20px;
             fill: #cc0000;
             padding: 10px;
             background: #000f1d;
