@@ -19,6 +19,7 @@
     let selectedObjectType: ObjectType = $state(options[0]);
     let selectedObjectLevel: number = $state(0);
     let isCanvasExpanded = $state(false);
+    let displayedLayers = $state(0);
 
     function handleMouseMove(event) {
         if (!editor) return;
@@ -53,9 +54,11 @@
             untrack(() => {
                 if (points.length === 2 && selectedObjectType != "floor") {
                     sceneManager.addObjectToScene(points[0], points[1], selectedObjectType, selectedObjectLevel);
+                    displayedLayers = sceneManager.sceneObjectList.length - 1;
                     points = [];
                 } else if (points.length === 4) {
                     sceneManager.addFloorToScene(points[0], points[1], selectedObjectType, selectedObjectLevel, points[2], points[3]);
+                    displayedLayers = sceneManager.sceneObjectList.length - 1;
                     points = [];
                 }
             })
@@ -64,6 +67,20 @@
             selectedObjectType;
             untrack(() => {
                 points = [];
+            })
+        })
+        $effect(() => {
+            displayedLayers;
+            untrack(() => {
+                sceneManager.sceneObjectList.map((level, index) => {
+                    if (index <= displayedLayers) {
+                        level.map(object => scene.add(object.object));
+                    }
+                    else{
+                        level.map(object => scene.remove(object.object));
+                    }
+                })
+                // this.scene.remove(sceneObject);
             })
         })
     })
@@ -93,15 +110,20 @@
             </select>
             <select bind:value={selectedObjectLevel}>
                 {#each Array(levels) as _, index}
-                    <option value={index}>{index}. szint</option>
+                    <option value={index}>{index}. level</option>
                 {/each}
-                <option value={levels}>{levels}. szint</option>
+                <option value={levels}>{levels}. level</option>
             </select>
         {/if}
     </div>
 
     <div class="split-screen">
-        <button class="close" onclick={() => copyToClipboard()}>Copy to clipboard</button>
+        <div class="button-container">
+<!--            <button onclick={() => copyToClipboard()}>Copy</button>-->
+            {#each Array(sceneManager.sceneObjectList.length) as _, index}
+                <button onclick={() => {displayedLayers = index}} class:active={displayedLayers >= index}>{index}. level</button>
+            {/each}
+        </div>
         <canvas bind:this={canvas} class:expanded={isCanvasExpanded}></canvas>
         <div role="none" class="editor" bind:this={editor} onclick={() => {placePoint()}}
              onmousemove={handleMouseMove}>
@@ -217,17 +239,19 @@
       display: flex;
       flex-direction: row;
       position: relative;
-
-      .close, .expand {
+      .button-container{
         position: absolute;
-        top: 0;
-        width: 100px;
-        height: 40px;
-        border-radius: 10px;
-        margin: 10px;
-        z-index: 3;
-        border: none;
-        outline: none;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px;
+        bottom: 0;
+        button{
+          border: none;
+          &.active{
+            background-color: orangered;
+          }
+        }
       }
 
       .editor {

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 export let defaultWallHeight = 100;
 let wallThickness = 20;
-let Correction = 350;
+let correction = 350;
 
 export type Point = {
     x: number,
@@ -59,7 +59,7 @@ export function createWindow(p1: Point, p2: Point, color: number | string = 0x88
     // Csoport összefogása
     const group = new THREE.Group();
     parts.forEach(mesh => group.add(mesh));
-    group.position.set(midPoint.x - Correction, 0, midPoint.z - Correction);
+    group.position.set(midPoint.x - correction, 0, midPoint.z - correction);
     group.rotation.y = -angle;
 
     group.traverse(obj => {
@@ -112,7 +112,7 @@ export function createDoor(p1: Point, p2: Point, color: number | string = 0x8888
     // Csoport összefogása
     const group = new THREE.Group();
     parts.forEach(mesh => group.add(mesh));
-    group.position.set(midPoint.x - Correction, 0, midPoint.z - Correction);
+    group.position.set(midPoint.x - correction, 0, midPoint.z - correction);
     group.rotation.y = -angle;
 
     group.traverse(obj => {
@@ -128,16 +128,16 @@ export function createDoor(p1: Point, p2: Point, color: number | string = 0x8888
 export function createWall(p1: Point, p2: Point, color: number | string = 0x888888, wallHeight: number = defaultWallHeight) {
     const point1 = new THREE.Vector3(p1.x, 0, p1.y);
     const point2 = new THREE.Vector3(p2.x, 0, p2.y);
-    const distance = point1.distanceTo(point2);
-
     const midPoint = new THREE.Vector3().addVectors(point1, point2).multiplyScalar(0.5);
+
+    const distance = point1.distanceTo(point2);
 
     const geometry = new THREE.BoxGeometry(distance, wallHeight, wallThickness);
     const material = new THREE.MeshStandardMaterial({ color });
     const wall = new THREE.Mesh(geometry, material);
 
     //set position
-    wall.position.set(midPoint.x - Correction, wallHeight / 2, midPoint.z - Correction);
+    wall.position.set(midPoint.x - correction, wallHeight / 2, midPoint.z - correction);
 
     //rotation
     const angle = Math.atan2(point2.z - point1.z, point2.x - point1.x);
@@ -169,7 +169,9 @@ export function createFloor(p1: Point, p2: Point, p3: Point, p4: Point, color: n
 
     // Y irányba fektetés
     floor.rotation.x = -Math.PI / 2;
-    floor.position.set(0 - Correction, -1, p2.x - Correction);
+    // floor.position.set(0 - correction, -1, p2.x - correction);
+    floor.position.x -= correction;
+    floor.position.z += correction - defaultWallHeight;
     floor.receiveShadow = true;
 
     return floor;

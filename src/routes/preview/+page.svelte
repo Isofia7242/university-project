@@ -1907,12 +1907,10 @@
 </script>
 
 <div class="page">
-    <HeroSection/>
     <Editor title="Editor" {initData}/>
 </div>
 
 <style lang="scss">
-  @use "../app" as *;
   .page {
     max-height: 100vh;
     scroll-snap-type: y mandatory;
