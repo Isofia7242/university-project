@@ -1,7 +1,8 @@
+$color-1: #124967;
+$color-2: #56a5ff;
 * {
   box-sizing: border-box;
-  background-color: #56a5ff;
-  $asd: #124967;
+  background-color: $color-1;
   font-family: "Baloo Chettan 2", sans-serif;
   user-select: none;
 }

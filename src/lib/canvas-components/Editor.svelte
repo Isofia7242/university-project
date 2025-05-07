@@ -1,8 +1,9 @@
 <script lang="ts">
     import {onMount} from 'svelte';
     import {getNewCanvas} from "$lib/services/canvas.js";
-    import {createBaseFloor, createWall, type Point} from "$lib/services/building-components.svelte.js";
+    import {createBaseFloor, type Point} from "$lib/services/building-components.svelte.js";
     import * as THREE from 'three';
+    import {type ObjectType, SceneManager} from "$lib/services/Scene-manager.svelte.js";
 
     let {title}: { title?: string } = $props();
     let canvas: HTMLCanvasElement;
@@ -11,9 +12,12 @@
     let x: number = $state(0);
     let y: number = $state(0);
     let shiftPressed = $state(false);
-    let scene;
-    let sceneObjectList: { object: any, p1: Point, p2: Point }[] = $state([]);
+    let scene: THREE.scene;
+    let sceneManager = new SceneManager();
     let selectedCard = $state();
+    let options: ObjectType[] = ["wall", "door", "window", "stairs"];
+    let selectedObjectType: ObjectType = $state(options[0]);
+    let isCanvasExpanded = $state(false);
 
     function handleMouseMove(event) {
         if (!editor) return;
@@ -33,74 +37,41 @@
         scene.add(
             createBaseFloor(0, undefined, 1500, 1500),
         )
+        sceneManager.scene = scene;
         $effect(() => {
             if (points.length === 2) {
-                let wall = createWall(points[0], points[1]);
-                sceneObjectList.push({object: wall, p1: points[0], p2: points[1]});
-                scene.add(
-                    wall
-                )
+                sceneManager.addObjectToScene(points[0], points[1], selectedObjectType);
                 points = [];
             }
         })
     })
 
-    function removeObject(sceneObject) {
-        if (!sceneObject) return;
-
-        // Remove from scene
-        scene.remove(sceneObject);
-
-        // Dispose geometry
-        if (sceneObject.geometry) {
-            sceneObject.geometry.dispose();
-        }
-
-        // Dispose material(s)
-        if (sceneObject.material) {
-            if (Array.isArray(sceneObject.material)) {
-                sceneObject.material.forEach(mat => mat.dispose());
-            } else {
-                sceneObject.material.dispose();
-            }
-        }
-
-        // Dispose textures if available
-        if (sceneObject.material?.map) {
-            sceneObject.material.map.dispose();
-        }
-    }
-
-    function modifyWall(index: number, point1: Point, point2: Point) {
-        let wall = sceneObjectList[index].object;
-        removeObject(wall);
-        let modifiedWall = createWall(point1, point2);
-        sceneObjectList[index] = {object: modifiedWall, p1: point1, p2: point2};
-        scene.add(
-            modifiedWall
-        )
-    }
-
-    function deleteWall(index) {
-        removeObject(sceneObjectList[index].object);
-        sceneObjectList.splice(index, 1);
-        sceneObjectList = [...sceneObjectList];
-    }
 </script>
 <div class="editor-container">
-    {#if title}
-        <h1 class="title">{title}</h1>
-    {/if}
-    <div class="split-screen">
-        <canvas bind:this={canvas}></canvas>
-        <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions, a11y_no_noninteractive_element_interactions -->
-        <div class="editor" bind:this={editor} onclick={() => {placePoint()}}
-             onmousemove={handleMouseMove}>
+    <div class="title">
+        {#if title}
             <div class="tooltip">
                 <p>x: {x}</p>
                 <p>y: {y}</p>
             </div>
-            {#each sceneObjectList as wall, index}
+            <select bind:value={selectedObjectType}>
+                {#each options as option}
+                    <option>{option}</option>
+                {/each}
+            </select>
+        {/if}
+    </div>
+
+    <div class="split-screen">
+        {#if isCanvasExpanded}
+            <button class="close" onclick={() => isCanvasExpanded = false}>close</button>
+            {:else}
+            <button class="expand" onclick={() => isCanvasExpanded = true}>Expand</button>
+        {/if}
+        <canvas bind:this={canvas} class:expanded={isCanvasExpanded}></canvas>
+        <div role="none" class="editor" bind:this={editor} onclick={() => {placePoint()}}
+             onmousemove={handleMouseMove}>
+            {#each sceneManager.sceneObjectList as wall, index}
                 <div class="point" class:selected={selectedCard === index}
                      style="--x: {wall.p1.x}px; --y: {wall.p1.y}px">
                     {#if index === selectedCard}
@@ -120,28 +91,27 @@
             <div class="point cursor" style="--x: {x}px; --y: {y}px"></div>
         </div>
         <div class="object-container">
-            {#each sceneObjectList as wall, index}
+            {#each sceneManager.sceneObjectList as wall, index}
                 {@const point1 = {x: wall.p1.x, y: wall.p1.y}}
                 {@const point2 = {x: wall.p2.x, y: wall.p2.y}}
-                <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions, a11y_no_noninteractive_element_interactions -->
-                <div class="card" onmouseenter={() => {selectedCard = index}} onfocus={() => {selectedCard = index}}>
-                    <p class="card-title">Wall {index + 1}</p>
+                <div role="none" class="card" onmouseenter={() => {selectedCard = index}}
+                     onfocus={() => {selectedCard = index}}>
+                    <p class="card-title">{wall.objectType} {index + 1}</p>
                     <div class="p-input">
                         <p>Point1: </p>
                         <input type="number" max="999" bind:value="{point1.x}"
-                               onchange={() => modifyWall(index, point1, point2)}>
+                               onchange={() => sceneManager.modifyObject(index, point1, point2)}>
                         <input type="number" max="999" bind:value="{point1.y}"
-                               onchange={() => modifyWall(index, point1, point2)}>
+                               onchange={() => sceneManager.modifyObject(index, point1, point2)}>
                     </div>
                     <div class="p-input">
                         <p>Point2: </p>
                         <input type="number" max="999" bind:value="{point2.x}"
-                               onchange={() => modifyWall(index, point1, point2)}>
+                               onchange={() => sceneManager.modifyObject(index, point1, point2)}>
                         <input type="number" max="999" bind:value="{point2.y}"
-                               onchange={() => modifyWall(index, point1, point2)}>
+                               onchange={() => sceneManager.modifyObject(index, point1, point2)}>
                     </div>
-                    <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions, a11y_no_noninteractive_element_interactions -->
-                    <div class="icon-container" onclick={() => deleteWall(index)}>
+                    <div role="none" class="icon-container" onclick={() => sceneManager.removeObject(index)}>
                         <svg viewBox="0 0 448 512">
                             <path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z"/>
                         </svg>
@@ -162,11 +132,53 @@
     flex-direction: column;
     overflow: auto;
 
+    .title {
+      display: flex;
+      justify-content: end;
+      align-items: center;
+      padding: 0 20px;
+
+      .tooltip {
+        width: 100px;
+        font-weight: bold;
+        top: -90px;
+        right: 0;
+        text-align: start;
+        font-size: 30px;
+        color: white;
+
+        p {
+          margin: 0;
+        }
+      }
+
+      select {
+        padding: 10px;
+        height: max-content;
+        outline: none;
+        border-radius: 10px;
+        font-size: 20px;
+        width: 300px;
+      }
+    }
+
     .split-screen {
       max-height: calc(100vh - 89px);
       width: 100%;
       display: flex;
       flex-direction: row;
+      position: relative;
+      .close, .expand{
+        position: absolute;
+        top: 0;
+        width: 100px;
+        height: 40px;
+        border-radius: 10px;
+        margin: 10px;
+        z-index: 3;
+        border: none;
+        outline: none;
+      }
 
       .editor {
         max-width: 600px;
@@ -175,21 +187,6 @@
         border: 1px solid black;
         background: url("/grid-background.svg");
         position: relative;
-
-        .tooltip {
-          width: 100px;
-          position: absolute;
-          font-weight: bold;
-          top: -90px;
-          right: 0;
-          text-align: start;
-          font-size: 30px;
-          color: white;
-
-          p {
-            margin: 0;
-          }
-        }
 
         .point {
           --width: 14px;
@@ -227,8 +224,9 @@
         display: flex;
         flex-direction: column;
         gap: 15px;
-        padding: 15px;
+        padding: 15px 40px 15px 15px;
         overflow: auto;
+        box-sizing: border-box;
 
         .card {
           width: 100%;
@@ -303,6 +301,14 @@
       canvas {
         max-height: calc(100vh - 89px);
         max-width: 50dvw;
+
+        &.expanded {
+          max-width: calc(100vw - 18px);
+          width: 100vw;
+          position: absolute;
+          z-index: 2;
+          top: 0;
+        }
       }
     }
   }

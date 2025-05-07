@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-
 export function getNewCanvas(canvas: HTMLCanvasElement){
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x000020);

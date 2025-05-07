@@ -1,11 +1,128 @@
 import * as THREE from 'three';
-let defaultWallHeight = 70;
+
+export let defaultWallHeight = 100;
 let wallThickness = 20;
-let Correction = 300;
+let Correction = 350;
 
 export type Point = {
     x: number,
     y: number,
+}
+
+export function createWindow(p1: Point, p2: Point, color: number | string = 0x888888, wallHeight: number = defaultWallHeight, windowHeightGapRate: number = 0.2) {
+    let point1 = new THREE.Vector3(p1.x, 0, p1.y);
+    let point2 = new THREE.Vector3(p2.x, 0, p2.y);
+    let distance = point1.distanceTo(point2);
+
+    let windowBottom: number = wallHeight * windowHeightGapRate;
+    let windowWidth: number = distance - windowBottom;
+    let windowHeight: number = wallHeight * (1 - 2 * windowHeightGapRate);
+
+    let midPoint = new THREE.Vector3().addVectors(point1, point2).multiplyScalar(0.5);
+    let angle = Math.atan2(point2.z - point1.z, point2.x - point1.x);
+
+    let parts: THREE.Mesh[] = [];
+
+    // Fal alsó rész (ablak alatt)
+    const lowerHeight = windowBottom;
+    if (lowerHeight > 0) {
+        const geom = new THREE.BoxGeometry(distance, lowerHeight, wallThickness);
+        const mesh = new THREE.Mesh(geom, new THREE.MeshStandardMaterial({ color }));
+        mesh.position.set(0, lowerHeight / 2, 0);
+        parts.push(mesh);
+    }
+
+    // Fal felső rész (ablak felett)
+    const upperHeight = wallHeight - windowBottom - windowHeight;
+    if (upperHeight > 0) {
+        const geom = new THREE.BoxGeometry(distance, upperHeight, wallThickness);
+        const mesh = new THREE.Mesh(geom, new THREE.MeshStandardMaterial({ color }));
+        mesh.position.set(0, windowBottom + windowHeight + upperHeight / 2, 0);
+        parts.push(mesh);
+    }
+
+    // Fal bal és jobb oldala az ablak mellett
+    const sideWidth = (distance - windowWidth) / 2;
+    if (sideWidth > 0) {
+        const sideHeight = windowHeight;
+        const geom = new THREE.BoxGeometry(sideWidth, sideHeight, wallThickness);
+
+        const left = new THREE.Mesh(geom, new THREE.MeshStandardMaterial({ color }));
+        left.position.set(-windowWidth / 2 - sideWidth / 2, windowBottom + sideHeight / 2, 0);
+        parts.push(left);
+
+        const right = new THREE.Mesh(geom, new THREE.MeshStandardMaterial({ color }));
+        right.position.set(windowWidth / 2 + sideWidth / 2, windowBottom + sideHeight / 2, 0);
+        parts.push(right);
+    }
+
+    // Csoport összefogása
+    const group = new THREE.Group();
+    parts.forEach(mesh => group.add(mesh));
+    group.position.set(midPoint.x - Correction, 0, midPoint.z - Correction);
+    group.rotation.y = -angle;
+
+    group.traverse(obj => {
+        if (obj instanceof THREE.Mesh) {
+            obj.castShadow = true;
+            obj.receiveShadow = true;
+        }
+    });
+
+    return group;
+}
+
+export function createDoor(p1: Point, p2: Point, color: number | string = 0x888888, wallHeight: number = defaultWallHeight, doorHeightGapRate: number = 0.2) {
+    let point1 = new THREE.Vector3(p1.x, 0, p1.y);
+    let point2 = new THREE.Vector3(p2.x, 0, p2.y);
+    let distance = point1.distanceTo(point2);
+
+    let doorWidth: number = distance - 2 * wallHeight * doorHeightGapRate;
+    let doorHeight: number = wallHeight * (1 - doorHeightGapRate);
+
+    let midPoint = new THREE.Vector3().addVectors(point1, point2).multiplyScalar(0.5);
+    let angle = Math.atan2(point2.z - point1.z, point2.x - point1.x);
+
+    let parts: THREE.Mesh[] = [];
+
+    // Fal felső rész (ajtó lyuk felett)
+    const upperHeight = wallHeight - doorHeight;
+    if (upperHeight > 0) {
+        const geom = new THREE.BoxGeometry(distance, upperHeight, wallThickness);
+        const mesh = new THREE.Mesh(geom, new THREE.MeshStandardMaterial({ color }));
+        mesh.position.set(0, doorHeight + upperHeight / 2, 0);
+        parts.push(mesh);
+    }
+
+    // Fal bal és jobb oldala az ablak mellett
+    const sideWidth = (distance - doorWidth) / 2;
+    if (sideWidth > 0) {
+        const sideHeight = doorHeight;
+        const geom = new THREE.BoxGeometry(sideWidth, sideHeight, wallThickness);
+
+        const left = new THREE.Mesh(geom, new THREE.MeshStandardMaterial({ color }));
+        left.position.set(-doorWidth / 2 - sideWidth / 2, sideHeight / 2, 0);
+        parts.push(left);
+
+        const right = new THREE.Mesh(geom, new THREE.MeshStandardMaterial({ color }));
+        right.position.set(doorWidth / 2 + sideWidth / 2, sideHeight / 2, 0);
+        parts.push(right);
+    }
+
+    // Csoport összefogása
+    const group = new THREE.Group();
+    parts.forEach(mesh => group.add(mesh));
+    group.position.set(midPoint.x - Correction, 0, midPoint.z - Correction);
+    group.rotation.y = -angle;
+
+    group.traverse(obj => {
+        if (obj instanceof THREE.Mesh) {
+            obj.castShadow = true;
+            obj.receiveShadow = true;
+        }
+    });
+
+    return group;
 }
 
 export function createWall(p1: Point, p2: Point, color: number | string = 0x888888, wallHeight: number = defaultWallHeight) {
@@ -43,5 +160,3 @@ export function createBaseFloor(level: number = 0, color: number | string = 0x12
     return floor;
 }
 
-export function createHorizontalWall(){}
-export function createVerticalWall(){}
