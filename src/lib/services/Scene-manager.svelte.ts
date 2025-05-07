@@ -16,10 +16,11 @@ type SceneObject = {
 export type ObjectType = "wall" | "door" | "window" | "stairs";
 
 export class SceneManager {
-    sceneObjectList: SceneObject[] = $state([]);
+    sceneObjectList: SceneObject[][] = $state([[]]);
     scene: THREE.scene = $state(undefined);
 
-    addObjectToScene(p1: Point, p2: Point, objectType: ObjectType, level = 1) {
+    addObjectToScene(p1: Point, p2: Point, objectType: ObjectType, level: number) {
+        if (level === this.sceneObjectList.length)this.sceneObjectList.push([]);
         let newObject: THREE.Mesh;
 
         if (objectType === "wall") {
@@ -31,23 +32,23 @@ export class SceneManager {
         else if (objectType === "door") {
             newObject = createDoor(p1, p2);
         }
-        // newObject.position.y += level * defaultWallHeight;
-        this.sceneObjectList.push({object: newObject, p1, p2, objectType, level});
+        newObject.position.y += level * defaultWallHeight;
+        this.sceneObjectList[level].push({object: newObject, p1, p2, objectType, level});
         this.scene.add(newObject);
     }
 
-    removeObject(index: number) {
-        this.clearUp(this.sceneObjectList[index].object);
-        this.sceneObjectList.splice(index, 1);
+    removeObject(index: number, level: number) {
+        this.clearUp(this.sceneObjectList[level][index].object);
+        this.sceneObjectList[level].splice(index, 1);
         this.sceneObjectList = [...this.sceneObjectList];
     }
 
-    modifyObject(index: number, point1: Point, point2: Point) {
-        let o = this.sceneObjectList[index];
+    modifyObject(index: number, point1: Point, point2: Point, level: number) {
+        let o = this.sceneObjectList[level][index];
         let wall = o.object;
         this.clearUp(wall);
         let modifiedWall = createWall(point1, point2);
-        this.sceneObjectList[index] = {object: modifiedWall, p1: point1, p2: point2, objectType: o.objectType, level: o.level};
+        this.sceneObjectList[level][index] = {object: modifiedWall, p1: point1, p2: point2, objectType: o.objectType, level: o.level};
         this.scene.add(
             modifiedWall
         )
