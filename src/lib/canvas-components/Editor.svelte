@@ -3,9 +3,9 @@
     import {getNewCanvas} from "$lib/services/canvas.js";
     import {createBaseFloor, type Point} from "$lib/services/building-components.svelte.js";
     import * as THREE from 'three';
-    import {type ObjectType, SceneManager} from "$lib/services/Scene-manager.svelte.js";
+    import {type ObjectType, SceneManager, type SceneObject} from "$lib/services/Scene-manager.svelte.js";
 
-    let {title}: { title?: string } = $props();
+    let {title, initData}: { title?: string, initData: SceneObject[][] } = $props();
     let canvas: HTMLCanvasElement;
     let editor: HTMLDivElement;
     let points: Point[] = $state([]);
@@ -39,6 +39,15 @@
             createBaseFloor(0, undefined, 1500, 1500),
         )
         sceneManager.scene = scene;
+        initData.map(level => {
+            level.map(ob => {
+                if (ob.objectType === "floor") {
+                    sceneManager.addFloorToScene(ob.p1, ob.p2, ob.objectType, ob.level, ob.p3!, ob.p4!)
+                } else {
+                    sceneManager.addObjectToScene(ob.p1, ob.p2, ob.objectType, ob.level)
+                }
+            })
+        })
         $effect(() => {
             points.length;
             untrack(() => {
@@ -46,7 +55,7 @@
                     sceneManager.addObjectToScene(points[0], points[1], selectedObjectType, selectedObjectLevel);
                     points = [];
                 } else if (points.length === 4) {
-                    sceneManager.addObjectToScene(points[0], points[1], selectedObjectType, selectedObjectLevel, points[2], points[3]);
+                    sceneManager.addFloorToScene(points[0], points[1], selectedObjectType, selectedObjectLevel, points[2], points[3]);
                     points = [];
                 }
             })
@@ -58,6 +67,15 @@
             })
         })
     })
+
+    function copyToClipboard() {
+        const stripped = sceneManager.sceneObjectList.map(row =>
+            row.map(({object, ...rest}) => rest)
+        );
+        navigator.clipboard.writeText(JSON.stringify(stripped, null, 2))
+            .then(() => alert("Copied!"))
+            .catch(() => alert("Failed to copy"));
+    }
 
 </script>
 <div class="editor-container">
@@ -83,11 +101,7 @@
     </div>
 
     <div class="split-screen">
-        {#if isCanvasExpanded}
-            <button class="close" onclick={() => isCanvasExpanded = false}>close</button>
-        {:else}
-            <button class="expand" onclick={() => isCanvasExpanded = true}>Expand</button>
-        {/if}
+        <button class="close" onclick={() => copyToClipboard()}>Copy to clipboard</button>
         <canvas bind:this={canvas} class:expanded={isCanvasExpanded}></canvas>
         <div role="none" class="editor" bind:this={editor} onclick={() => {placePoint()}}
              onmousemove={handleMouseMove}>
@@ -118,7 +132,10 @@
             {#each sceneManager.sceneObjectList as level, levelIndex}
                 {@const activeLevel = levelIndex === selectedObjectLevel}
                 {#if activeLevel}
-                        <button class="delete-level" onclick={() => {if(window.confirm("Are you sure?"))sceneManager.removeLevel(levelIndex)}}>Delete {levelIndex}. level</button>
+                    <button class="delete-level"
+                            onclick={() => {if(window.confirm("Are you sure?"))sceneManager.removeLevel(levelIndex)}}>
+                        Delete {levelIndex}. level
+                    </button>
                     {#each level as wall, index}
                         <!--{@const point1 = {x: wall.p1.x, y: wall.p1.y}}-->
                         <!--{@const point2 = {x: wall.p2.x, y: wall.p2.y}}-->
@@ -264,7 +281,8 @@
         padding: 15px 40px 15px 15px;
         overflow: auto;
         box-sizing: border-box;
-        .delete-level{
+
+        .delete-level {
           box-sizing: border-box;
           border: none;
           border-radius: 10px;
@@ -274,6 +292,7 @@
           width: 320px;
           background-color: #dc3454;
         }
+
         .card {
           width: 100%;
           background-color: #000a;
