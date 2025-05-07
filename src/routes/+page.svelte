@@ -1,7 +1,8 @@
 <script lang="ts">
     import HeroSection from "$lib/HeroSection.svelte";
     import Editor from "$lib/canvas-components/Editor.svelte";
-    let initData = [
+    import type {SceneObject} from "$lib/services/Scene-manager.svelte.js";
+    let initData: SceneObject[][] = [
         [
             {
                 "p1": {
@@ -266,20 +267,6 @@
                 },
                 "objectType": "door",
                 "level": 0
-            }
-        ],
-        [
-            {
-                "p1": {
-                    "x": 0,
-                    "y": 0
-                },
-                "p2": {
-                    "x": 600,
-                    "y": 0
-                },
-                "objectType": "floor",
-                "level": 1
             }
         ]
     ];
