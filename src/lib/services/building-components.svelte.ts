@@ -149,6 +149,32 @@ export function createWall(p1: Point, p2: Point, color: number | string = 0x8888
     return wall;
 }
 
+export function createFloor(p1: Point, p2: Point, p3: Point, p4: Point, color: number | string = 0xaaaaaa) {
+    const shape = new THREE.Shape();
+    shape.moveTo(p1.x, p1.y);
+    shape.lineTo(p2.x, p2.y);
+    shape.lineTo(p3.x, p3.y);
+    shape.lineTo(p4.x, p4.y);
+    shape.lineTo(p1.x, p1.y); // visszazárás
+
+    const extrudeSettings = {
+        steps: 1,
+        depth: 1, // vastagság
+        bevelEnabled: false
+    };
+
+    const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+    const material = new THREE.MeshStandardMaterial({ color });
+    const floor = new THREE.Mesh(geometry, material);
+
+    // Y irányba fektetés
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.set(0 - Correction, 1, p2.x - Correction);
+    floor.receiveShadow = true;
+
+    return floor;
+}
+
 export function createBaseFloor(level: number = 0, color: number | string = 0x124967, width: number = 1000, depth: number = 1000) {
     const floorGeometry = new THREE.BoxGeometry(width, 0.1, depth);
     const floorMaterial = new THREE.MeshBasicMaterial({color});

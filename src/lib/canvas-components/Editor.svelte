@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {onMount} from 'svelte';
+    import {onMount, untrack} from 'svelte';
     import {getNewCanvas} from "$lib/services/canvas.js";
     import {createBaseFloor, type Point} from "$lib/services/building-components.svelte.js";
     import * as THREE from 'three';
@@ -15,7 +15,7 @@
     let scene: THREE.scene;
     let sceneManager = new SceneManager();
     let selectedCard = $state();
-    let options: ObjectType[] = ["wall", "door", "window", "stairs"];
+    let options: ObjectType[] = ["wall", "door", "window", "stairs", "floor"];
     let selectedObjectType: ObjectType = $state(options[0]);
     let selectedObjectLevel: number = $state(0);
     let isCanvasExpanded = $state(false);
@@ -40,10 +40,22 @@
         )
         sceneManager.scene = scene;
         $effect(() => {
-            if (points.length === 2) {
-                sceneManager.addObjectToScene(points[0], points[1], selectedObjectType, selectedObjectLevel);
+            points.length;
+            untrack(() => {
+                if (points.length === 2 && selectedObjectType != "floor") {
+                    sceneManager.addObjectToScene(points[0], points[1], selectedObjectType, selectedObjectLevel);
+                    points = [];
+                }else if (points.length === 4){
+                    sceneManager.addObjectToScene(points[0], points[1], selectedObjectType, selectedObjectLevel, points[2], points[3]);
+                    points = [];
+                }
+            })
+        })
+        $effect(() => {
+            selectedObjectType;
+            untrack(() => {
                 points = [];
-            }
+            })
         })
     })
 

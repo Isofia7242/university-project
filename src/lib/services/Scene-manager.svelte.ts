@@ -1,5 +1,5 @@
 import {
-    createDoor,
+    createDoor, createFloor,
     createWall,
     createWindow, defaultWallHeight,
     type Point
@@ -13,13 +13,13 @@ type SceneObject = {
     p2: Point,
     level: number,
 }
-export type ObjectType = "wall" | "door" | "window" | "stairs";
+export type ObjectType = "wall" | "door" | "window" | "stairs" | "floor";
 
 export class SceneManager {
     sceneObjectList: SceneObject[][] = $state([[]]);
     scene: THREE.scene = $state(undefined);
 
-    addObjectToScene(p1: Point, p2: Point, objectType: ObjectType, level: number) {
+    addObjectToScene(p1: Point, p2: Point, objectType: ObjectType, level: number, p3?: Point, p4?: Point) {
         if (level === this.sceneObjectList.length)this.sceneObjectList.push([]);
         let newObject: THREE.Mesh;
 
@@ -31,6 +31,9 @@ export class SceneManager {
         }
         else if (objectType === "door") {
             newObject = createDoor(p1, p2);
+        }
+        else if (objectType === "floor") {
+            newObject = createFloor(p1, p2, p3!, p4!);
         }
         newObject.position.y += level * defaultWallHeight;
         this.sceneObjectList[level].push({object: newObject, p1, p2, objectType, level});
