@@ -11,7 +11,24 @@ export function getNewCanvas(canvas: HTMLCanvasElement){
 
     controls.update();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
 
+    window.addEventListener('click', (event) => {
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects(scene.children, true);
+
+        for (const hit of intersects) {
+            const obj = hit.object;
+            if (obj.userData?.clickable && typeof obj.userData.onClick === 'function') {
+                obj.userData.onClick();
+                break;
+            }
+        }
+    });
     camera.position.set(500, 750, 400);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 

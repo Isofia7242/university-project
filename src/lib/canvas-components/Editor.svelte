@@ -46,12 +46,13 @@
                     sceneManager.addFloorToScene(ob.p1, ob.p2!, ob.objectType, ob.level, ob.p3!, ob.p4!)
                 } else if (ob.objectType === "info" || ob.objectType === "youtube") {
                     sceneManager.addInteractiveToScene(ob.p1, ob.objectType, ob.level)
-                }else{
+                } else {
                     sceneManager.addObjectToScene(ob.p1, ob.p2!, ob.objectType, ob.level)
 
                 }
             })
         })
+
         $effect(() => {
             points.length;
             untrack(() => {
@@ -87,8 +88,7 @@
                 sceneManager.sceneObjectList.map((level, index) => {
                     if (index <= displayedLayers) {
                         level.map(object => scene.add(object.object));
-                    }
-                    else{
+                    } else {
                         level.map(object => scene.remove(object.object));
                     }
                 })
@@ -133,7 +133,9 @@
         <div class="button-container">
             <button onclick={() => copyToClipboard()}>Copy</button>
             {#each Array(sceneManager.sceneObjectList.length) as _, index}
-                <button onclick={() => {displayedLayers = index}} class:active={displayedLayers >= index}>{index}. level</button>
+                <button onclick={() => {displayedLayers = index}} class:active={displayedLayers >= index}>{index}.
+                    level
+                </button>
             {/each}
         </div>
         <canvas bind:this={canvas} class:expanded={isCanvasExpanded}></canvas>
@@ -141,20 +143,22 @@
              onmousemove={handleMouseMove}>
             {#each sceneManager.sceneObjectList as level, levelIndex}
                 {@const activeLevel = levelIndex === selectedObjectLevel}
-                {#each level as wall, index}
+                {#each level as object, index}
                     {@const selected = selectedCard === index && activeLevel}
                     <div class="point" class:faded={!activeLevel} class:selected={selected}
-                         style="--x: {wall.p1.x}px; --y: {wall.p1.y}px">
+                         style="--x: {object.p1.x}px; --y: {object.p1.y}px">
                         {#if selected}
                             p1
                         {/if}
                     </div>
-                    <div class="point" class:faded={!activeLevel} class:selected={selected}
-                         style="--x: {wall.p2.x}px; --y: {wall.p2.y}px">
-                        {#if selected}
-                            p2
-                        {/if}
-                    </div>
+                    {#if object.p2}
+                        <div class="point" class:faded={!activeLevel} class:selected={selected}
+                             style="--x: {object.p2.x}px; --y: {object.p2.y}px">
+                            {#if selected}
+                                p2
+                            {/if}
+                        </div>
+                    {/if}
                 {/each}
             {/each}
             {#if points[0]}
@@ -251,17 +255,20 @@
       display: flex;
       flex-direction: row;
       position: relative;
-      .button-container{
+
+      .button-container {
         position: absolute;
         display: flex;
         flex-direction: column;
         gap: 10px;
         padding: 10px;
         bottom: 0;
-        button{
+
+        button {
           border: none;
           transition: background-color 0.5s;
-          &.active{
+
+          &.active {
             background-color: orangered;
           }
         }

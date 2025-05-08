@@ -212,7 +212,10 @@ export async function createYouTubeLogo(p1: Point): Promise<THREE.Mesh> {
 
     logo.castShadow = false;
     logo.receiveShadow = false;
+    let func = () => {alert("Youtube videó")}
 
+    logo.userData.clickable = true;
+    logo.userData.onClick = func;
     return logo;
 }
 
@@ -229,17 +232,21 @@ export async function createInfoIcon(p1: Point): Promise<THREE.Mesh> {
         );
     });
 
-    const geometry = new THREE.PlaneGeometry(50, 50);
+    const geometry = new THREE.PlaneGeometry(60, 60);
     const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
     const icon = new THREE.Mesh(geometry, material);
 
     icon.position.x = point1.x - correction;
     icon.position.z = point1.z - correction;
-    icon.position.y = 5;
+    icon.position.y = 10;
     icon.rotation.x = -Math.PI / 2;
 
     icon.castShadow = false;
     icon.receiveShadow = false;
+    let func = () => {alert("You have found an info!")}
+
+    icon.userData.clickable = true;
+    icon.userData.onClick = func;
 
     return icon;
 }
