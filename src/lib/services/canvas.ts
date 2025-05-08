@@ -12,7 +12,7 @@ export function getNewCanvas(canvas: HTMLCanvasElement){
     controls.update();
     renderer.setSize(window.innerWidth, window.innerHeight);
 
-    camera.position.set(0, 500, 0);
+    camera.position.set(500, 750, 400);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 
     const light = new THREE.HemisphereLight( 0xffffbb, 0x080820, 1 );

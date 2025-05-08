@@ -188,3 +188,61 @@ export function createBaseFloor(level: number = 0, color: number | string = 0x12
     return floor;
 }
 
+export async function createYouTubeLogo(p1: Point): Promise<THREE.Mesh> {
+    const point1 = new THREE.Vector3(p1.x, 0, p1.y);
+
+    const textureLoader = new THREE.TextureLoader();
+    const texture = await new Promise<THREE.Texture>((resolve, reject) => {
+        textureLoader.load(
+            '/yt.webp', // 50x50 px YouTube logó
+            resolve,
+            undefined,
+            reject
+        );
+    });
+
+    const geometry = new THREE.PlaneGeometry(50, 50);
+    const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
+    const logo = new THREE.Mesh(geometry, material);
+
+    logo.position.x = point1.x - correction;
+    logo.position.z = point1.z - correction;
+    logo.position.y = 5;
+    logo.rotation.x = - Math.PI / 2;
+
+    logo.castShadow = false;
+    logo.receiveShadow = false;
+
+    return logo;
+}
+
+export async function createInfoIcon(p1: Point): Promise<THREE.Mesh> {
+    const point1 = new THREE.Vector3(p1.x, 0, p1.y);
+
+    const textureLoader = new THREE.TextureLoader();
+    const texture = await new Promise<THREE.Texture>((resolve, reject) => {
+        textureLoader.load(
+            '/info.png',
+            resolve,
+            undefined,
+            reject
+        );
+    });
+
+    const geometry = new THREE.PlaneGeometry(50, 50);
+    const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
+    const icon = new THREE.Mesh(geometry, material);
+
+    icon.position.x = point1.x - correction;
+    icon.position.z = point1.z - correction;
+    icon.position.y = 5;
+    icon.rotation.x = -Math.PI / 2;
+
+    icon.castShadow = false;
+    icon.receiveShadow = false;
+
+    return icon;
+}
+
+
+

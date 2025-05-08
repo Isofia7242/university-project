@@ -1,7 +1,7 @@
 import {
-    createDoor, createFloor,
+    createDoor, createFloor, createInfoIcon,
     createWall,
-    createWindow, defaultWallHeight,
+    createWindow, createYouTubeLogo, defaultWallHeight,
     type Point
 } from "$lib/services/building-components.svelte.js";
 import * as THREE from 'three';
@@ -10,12 +10,12 @@ export type SceneObject = {
     objectType: ObjectType,
     object: THREE.Mesh,
     p1: Point,
-    p2: Point,
+    p2?: Point,
     p3?: Point,
     p4?: Point,
     level: number,
 }
-export type ObjectType = "wall" | "door" | "window" | "stairs" | "floor";
+export type ObjectType = "wall" | "door" | "window" | "stairs" | "floor" | "youtube" | "info";
 
 export class SceneManager {
     sceneObjectList: SceneObject[][] = $state([[]]);
@@ -46,8 +46,24 @@ export class SceneManager {
         else if (objectType === "door") {
             newObject = createDoor(p1, p2);
         }
+
         newObject.position.y += level * defaultWallHeight;
         this.sceneObjectList[level].push({object: newObject, p1, p2, objectType, level});
+        this.scene.add(newObject);
+    }
+    async addInteractiveToScene(p1: Point, objectType: ObjectType, level: number) {
+        if (level === this.sceneObjectList.length)this.sceneObjectList.push([]);
+        let newObject: THREE.Mesh;
+
+        if (objectType === "youtube") {
+            newObject = await createYouTubeLogo(p1);
+        }
+        else if (objectType === "info") {
+            newObject = await createInfoIcon(p1);
+        }
+
+        newObject.position.y += level * defaultWallHeight;
+        this.sceneObjectList[level].push({object: newObject, p1, objectType, level});
         this.scene.add(newObject);
     }
 

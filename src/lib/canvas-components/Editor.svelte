@@ -15,7 +15,7 @@
     let scene: THREE.scene;
     let sceneManager = new SceneManager();
     let selectedCard = $state();
-    let options: ObjectType[] = ["wall", "door", "window", "stairs", "floor"];
+    let options: ObjectType[] = ["wall", "door", "window", "floor", "youtube", "info"];
     let selectedObjectType: ObjectType = $state(options[0]);
     let selectedObjectLevel: number = $state(0);
     let isCanvasExpanded = $state(false);
@@ -43,22 +43,27 @@
         initData.map(level => {
             level.map(ob => {
                 if (ob.objectType === "floor") {
-                    sceneManager.addFloorToScene(ob.p1, ob.p2, ob.objectType, ob.level, ob.p3!, ob.p4!)
-                } else {
-                    sceneManager.addObjectToScene(ob.p1, ob.p2, ob.objectType, ob.level)
+                    sceneManager.addFloorToScene(ob.p1, ob.p2!, ob.objectType, ob.level, ob.p3!, ob.p4!)
+                } else if (ob.objectType === "info" || ob.objectType === "youtube") {
+                    sceneManager.addInteractiveToScene(ob.p1, ob.objectType, ob.level)
+                }else{
+                    sceneManager.addObjectToScene(ob.p1, ob.p2!, ob.objectType, ob.level)
+
                 }
             })
         })
         $effect(() => {
             points.length;
             untrack(() => {
+                if ((selectedObjectType === "youtube" || selectedObjectType === "info") && points.length === 1) {
+                    sceneManager.addInteractiveToScene(points[0], selectedObjectType, selectedObjectLevel);
+                    points = [];
+                }
                 if (points.length === 2 && selectedObjectType != "floor") {
                     sceneManager.addObjectToScene(points[0], points[1], selectedObjectType, selectedObjectLevel);
-                    displayedLayers = sceneManager.sceneObjectList.length - 1;
                     points = [];
                 } else if (points.length === 4) {
                     sceneManager.addFloorToScene(points[0], points[1], selectedObjectType, selectedObjectLevel, points[2], points[3]);
-                    displayedLayers = sceneManager.sceneObjectList.length - 1;
                     points = [];
                 }
             })
@@ -67,6 +72,13 @@
             selectedObjectType;
             untrack(() => {
                 points = [];
+            })
+        })
+
+        $effect(() => {
+            sceneManager.sceneObjectList.length;
+            untrack(() => {
+                displayedLayers = sceneManager.sceneObjectList.length - 1;
             })
         })
         $effect(() => {
@@ -119,7 +131,7 @@
 
     <div class="split-screen">
         <div class="button-container">
-<!--            <button onclick={() => copyToClipboard()}>Copy</button>-->
+            <button onclick={() => copyToClipboard()}>Copy</button>
             {#each Array(sceneManager.sceneObjectList.length) as _, index}
                 <button onclick={() => {displayedLayers = index}} class:active={displayedLayers >= index}>{index}. level</button>
             {/each}

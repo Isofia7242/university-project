@@ -267,6 +267,14 @@
                 },
                 "objectType": "door",
                 "level": 0
+            },
+            {
+                "p1": {
+                    "x": 300,
+                    "y": 300
+                },
+                "objectType": "youtube",
+                "level": 0
             }
         ],
         [
@@ -553,6 +561,14 @@
                 },
                 "objectType": "wall",
                 "level": 1
+            },
+            {
+                "p1": {
+                    "x": 300,
+                    "y": 300
+                },
+                "objectType": "youtube",
+                "level": 1
             }
         ],
         [
@@ -875,6 +891,38 @@
                 },
                 "objectType": "window",
                 "level": 2
+            },
+            {
+                "p1": {
+                    "x": 50,
+                    "y": 50
+                },
+                "objectType": "info",
+                "level": 2
+            },
+            {
+                "p1": {
+                    "x": 50,
+                    "y": 550
+                },
+                "objectType": "info",
+                "level": 2
+            },
+            {
+                "p1": {
+                    "x": 550,
+                    "y": 550
+                },
+                "objectType": "info",
+                "level": 2
+            },
+            {
+                "p1": {
+                    "x": 550,
+                    "y": 50
+                },
+                "objectType": "info",
+                "level": 2
             }
         ],
         [
@@ -1220,6 +1268,38 @@
                     "y": 0
                 },
                 "objectType": "floor",
+                "level": 3
+            },
+            {
+                "p1": {
+                    "x": 100,
+                    "y": 100
+                },
+                "objectType": "info",
+                "level": 3
+            },
+            {
+                "p1": {
+                    "x": 500,
+                    "y": 100
+                },
+                "objectType": "info",
+                "level": 3
+            },
+            {
+                "p1": {
+                    "x": 500,
+                    "y": 500
+                },
+                "objectType": "info",
+                "level": 3
+            },
+            {
+                "p1": {
+                    "x": 100,
+                    "y": 500
+                },
+                "objectType": "info",
                 "level": 3
             }
         ],
@@ -1838,6 +1918,22 @@
                     "y": 0
                 },
                 "objectType": "door",
+                "level": 6
+            },
+            {
+                "p1": {
+                    "x": 300,
+                    "y": 550
+                },
+                "objectType": "youtube",
+                "level": 6
+            },
+            {
+                "p1": {
+                    "x": 300,
+                    "y": 50
+                },
+                "objectType": "youtube",
                 "level": 6
             }
         ],
@@ -1900,10 +1996,35 @@
                     "y": 450
                 },
                 "objectType": "floor",
+                "level": 7
+            },
+            {
+                "p1": {
+                    "x": 300,
+                    "y": 300
+                },
+                "objectType": "youtube",
+                "level": 7
+            },
+            {
+                "p1": {
+                    "x": 300,
+                    "y": 50
+                },
+                "objectType": "info",
+                "level": 7
+            },
+            {
+                "p1": {
+                    "x": 300,
+                    "y": 550
+                },
+                "objectType": "info",
                 "level": 7
             }
         ]
     ] as SceneObject[][];
+    // initData = [];
 </script>
 
 <div class="page">
