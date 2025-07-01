@@ -1,209 +1,116 @@
 <script lang="ts">
-    import {onMount, untrack} from 'svelte';
-    import {getNewCanvas} from "$lib/services/canvas.js";
-    import {createBaseFloor, type Point} from "$lib/services/building-components.svelte.js";
-    import * as THREE from 'three';
-    import {type ObjectType, SceneManager, type SceneObject} from "$lib/services/Scene-manager.svelte.js";
+    import {onMount} from 'svelte';
+    import {type Point} from "$lib/services/building-components.svelte.js";
+    import {type BuildingConfig, SceneManager} from "$lib/services/scene-manager.svelte.js";
+    import {getDialogManager} from "$lib/ui-tools/dialog/dialog-manager.svelte.js";
+    import BuildingInput from "$lib/canvas-components/BuildingInput.svelte";
+    import {FloorManager} from "$lib/services/floor-manager-service.svelte.js";
 
-    let {title, initData}: { title?: string, initData: SceneObject[][] } = $props();
+
+    let dialogManager = getDialogManager();
+
     let canvas: HTMLCanvasElement;
-    let editor: HTMLDivElement;
     let points: Point[] = $state([]);
     let x: number = $state(0);
     let y: number = $state(0);
-    let shiftPressed = $state(false);
-    let scene: THREE.scene;
-    let sceneManager = new SceneManager();
-    let selectedCard = $state();
-    let options: ObjectType[] = ["wall", "door", "window", "floor", "youtube", "info"];
-    let selectedObjectType: ObjectType = $state(options[0]);
     let selectedObjectLevel: number = $state(0);
     let isCanvasExpanded = $state(false);
     let displayedLayers = $state(0);
 
-    function handleMouseMove(event) {
-        if (!editor) return;
-        const rect = editor.getBoundingClientRect();
-        let roundValue = 50;
-        x = Math.round((event.clientX - rect.left) / roundValue) * roundValue;
-        y = Math.round((event.clientY - rect.top) / roundValue) * roundValue;
-    }
+    // function handleMouseMove(event) {
+    //     if (!editor) return;
+    //     const rect = editor.getBoundingClientRect();
+    //     let roundValue = 50;
+    //     x = Math.round((event.clientX - rect.left) / roundValue) * roundValue;
+    //     y = Math.round((event.clientY - rect.top) / roundValue) * roundValue;
+    // }
 
+    //
+    // function placePoint() {
+    //     points.push({x: x, y: y})
+    // }
 
-    function placePoint() {
-        points.push({x: x, y: y})
-    }
-
-    onMount(() => {
-        scene = getNewCanvas(canvas);
-        scene.add(
-            createBaseFloor(0, undefined, 1500, 1500),
-        )
-        sceneManager.scene = scene;
-        initData.map(level => {
-            level.map(ob => {
-                if (ob.objectType === "floor") {
-                    sceneManager.addFloorToScene(ob.p1, ob.p2!, ob.objectType, ob.level, ob.p3!, ob.p4!)
-                } else if (ob.objectType === "info" || ob.objectType === "youtube") {
-                    sceneManager.addInteractiveToScene(ob.p1, ob.objectType, ob.level)
-                } else {
-                    sceneManager.addObjectToScene(ob.p1, ob.p2!, ob.objectType, ob.level)
-
-                }
-            })
-        })
-
-        $effect(() => {
-            points.length;
-            untrack(() => {
-                if ((selectedObjectType === "youtube" || selectedObjectType === "info") && points.length === 1) {
-                    sceneManager.addInteractiveToScene(points[0], selectedObjectType, selectedObjectLevel);
-                    points = [];
-                }
-                if (points.length === 2 && selectedObjectType != "floor") {
-                    sceneManager.addObjectToScene(points[0], points[1], selectedObjectType, selectedObjectLevel);
-                    points = [];
-                } else if (points.length === 4) {
-                    sceneManager.addFloorToScene(points[0], points[1], selectedObjectType, selectedObjectLevel, points[2], points[3]);
-                    points = [];
-                }
-            })
-        })
-        $effect(() => {
-            selectedObjectType;
-            untrack(() => {
-                points = [];
-            })
-        })
-
-        $effect(() => {
-            sceneManager.sceneObjectList.length;
-            untrack(() => {
-                displayedLayers = sceneManager.sceneObjectList.length - 1;
-            })
-        })
-        $effect(() => {
-            displayedLayers;
-            untrack(() => {
-                sceneManager.sceneObjectList.map((level, index) => {
-                    if (index <= displayedLayers) {
-                        level.map(object => scene.add(object.object));
-                    } else {
-                        level.map(object => scene.remove(object.object));
-                    }
-                })
-                // this.scene.remove(sceneObject);
-            })
-        })
+    onMount(async () => {
+        let buildingConfig = await dialogManager.open(BuildingInput) as BuildingConfig;
+        let sceneManager = new SceneManager(buildingConfig, canvas);
+        let floorManager = new FloorManager(buildingConfig, sceneManager.scene);
     })
-
-    function copyToClipboard() {
-        const stripped = sceneManager.sceneObjectList.map(row =>
-            row.map(({object, ...rest}) => rest)
-        );
-        navigator.clipboard.writeText(JSON.stringify(stripped, null, 2))
-            .then(() => alert("Copied!"))
-            .catch(() => alert("Failed to copy"));
-    }
 
 </script>
 <div class="editor-container">
     <div class="title">
-        {#if title}
-            {@const levels = sceneManager.sceneObjectList.length}
-            <div class="tooltip">
-                <p>x: {x}</p>
-                <p>y: {y}</p>
-            </div>
-            <select bind:value={selectedObjectType}>
-                {#each options as option}
-                    <option>{option}</option>
-                {/each}
-            </select>
-            <select bind:value={selectedObjectLevel}>
-                {#each Array(levels) as _, index}
-                    <option value={index}>{index}. level</option>
-                {/each}
-                <option value={levels}>{levels}. level</option>
-            </select>
-        {/if}
+        <!--{@const levels = sceneManager.sceneObjectList.length}-->
+        <div class="tooltip">
+            <p>x: {x}</p>
+            <p>y: {y}</p>
+        </div>
+        <select bind:value={selectedObjectLevel}>
+            <!--{#each Array(levels) as _, index}-->
+            <!--                <option value={index}>{index}. level</option>-->
+            <!--            {/each}-->
+            <!--            <option value={levels}>{levels}. level</option>-->
+        </select>
     </div>
 
     <div class="split-screen">
         <div class="button-container">
-            <button onclick={() => copyToClipboard()}>Copy</button>
-            {#each Array(sceneManager.sceneObjectList.length) as _, index}
-                <button onclick={() => {displayedLayers = index}} class:active={displayedLayers >= index}>{index}.
-                    level
-                </button>
-            {/each}
+            <!--{#each Array(sceneManager.sceneObjectList.length) as _, index}-->
+            <!--    <button onclick={() => {displayedLayers = index}} class:active={displayedLayers >= index}>{index}.-->
+            <!--        level-->
+            <!--    </button>-->
+            <!--{/each}-->
         </div>
         <canvas bind:this={canvas} class:expanded={isCanvasExpanded}></canvas>
-        <div role="none" class="editor" bind:this={editor} onclick={() => {placePoint()}}
-             onmousemove={handleMouseMove}>
-            {#each sceneManager.sceneObjectList as level, levelIndex}
-                {@const activeLevel = levelIndex === selectedObjectLevel}
-                {#each level as object, index}
-                    {@const selected = selectedCard === index && activeLevel}
-                    <div class="point" class:faded={!activeLevel} class:selected={selected}
-                         style="--x: {object.p1.x}px; --y: {object.p1.y}px">
-                        {#if selected}
-                            p1
-                        {/if}
-                    </div>
-                    {#if object.p2}
-                        <div class="point" class:faded={!activeLevel} class:selected={selected}
-                             style="--x: {object.p2.x}px; --y: {object.p2.y}px">
-                            {#if selected}
-                                p2
-                            {/if}
-                        </div>
-                    {/if}
-                {/each}
-            {/each}
-            {#if points[0]}
-                <div class="point temporary" style="--x: {points[0].x}px; --y: {points[0].y}px"></div>
-            {/if}
-            <div class="point cursor" style="--x: {x}px; --y: {y}px"></div>
-        </div>
+        <!--        <div role="none" class="editor" bind:this={editor} onclick={() => {placePoint()}} onmousemove={handleMouseMove}>-->
+        <!--{#each sceneManager.sceneObjectList as level, levelIndex}-->
+        <!--    {@const activeLevel = levelIndex === selectedObjectLevel}-->
+        <!--    {#each level as object, index}-->
+        <!--        {@const selected = selectedCard === index && activeLevel}-->
+        <!--        <div class="point" class:faded={!activeLevel} class:selected={selected}-->
+        <!--             style="&#45;&#45;x: {object.p1.x}px; &#45;&#45;y: {object.p1.y}px">-->
+        <!--            {#if selected}-->
+        <!--                p1-->
+        <!--            {/if}-->
+        <!--        </div>-->
+        <!--        {#if object.p2}-->
+        <!--            <div class="point" class:faded={!activeLevel} class:selected={selected}-->
+        <!--                 style="&#45;&#45;x: {object.p2.x}px; &#45;&#45;y: {object.p2.y}px">-->
+        <!--                {#if selected}-->
+        <!--                    p2-->
+        <!--                {/if}-->
+        <!--            </div>-->
+        <!--        {/if}-->
+        <!--    {/each}-->
+        <!--{/each}-->
+        {#if points[0]}
+            <div class="point temporary" style="--x: {points[0].x}px; --y: {points[0].y}px"></div>
+        {/if}
+        <div class="point cursor" style="--x: {x}px; --y: {y}px"></div>
+        <!--        </div>-->
         <div class="object-container">
-            {#each sceneManager.sceneObjectList as level, levelIndex}
-                {@const activeLevel = levelIndex === selectedObjectLevel}
-                {#if activeLevel}
-                    <button class="delete-level"
-                            onclick={() => {if(window.confirm("Are you sure?"))sceneManager.removeLevel(levelIndex)}}>
-                        Delete {levelIndex}. level
-                    </button>
-                    {#each level as wall, index}
-                        <!--{@const point1 = {x: wall.p1.x, y: wall.p1.y}}-->
-                        <!--{@const point2 = {x: wall.p2.x, y: wall.p2.y}}-->
-                        <div role="none" class="card" onmouseenter={() => {selectedCard = index}}
-                             onfocus={() => {selectedCard = index}}>
-                            <p class="card-title">{wall.objectType} {index + 1}</p>
-                            <!--                            <div class="p-input">-->
-                            <!--                                <p>Point1: </p>-->
-                            <!--                                <input type="number" max="999" bind:value="{point1.x}"-->
-                            <!--                                       onchange={() => sceneManager.modifyObject(index, point1, point2, selectedObjectLevel)}>-->
-                            <!--                                <input type="number" max="999" bind:value="{point1.y}"-->
-                            <!--                                       onchange={() => sceneManager.modifyObject(index, point1, point2, selectedObjectLevel)}>-->
-                            <!--                            </div>-->
-                            <!--                            <div class="p-input">-->
-                            <!--                                <p>Point2: </p>-->
-                            <!--                                <input type="number" max="999" bind:value="{point2.x}"-->
-                            <!--                                       onchange={() => sceneManager.modifyObject(index, point1, point2, selectedObjectLevel)}>-->
-                            <!--                                <input type="number" max="999" bind:value="{point2.y}"-->
-                            <!--                                       onchange={() => sceneManager.modifyObject(index, point1, point2, selectedObjectLevel)}>-->
-                            <!--                            </div>-->
-                            <div role="none" class="icon-container"
-                                 onclick={() => sceneManager.removeObject(index, selectedObjectLevel)}>
-                                <svg viewBox="0 0 448 512">
-                                    <path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z"/>
-                                </svg>
-                            </div>
-                        </div>
-                    {/each}
-                {/if}
-            {/each}
+            <!--{#each sceneManager.sceneObjectList as level, levelIndex}-->
+            <!--    {@const activeLevel = levelIndex === selectedObjectLevel}-->
+            <!--    {#if activeLevel}-->
+            <!--                    <button class="delete-level"-->
+            <!--                            onclick={() => {if(window.confirm("Are you sure?"))sceneManager.removeLevel(levelIndex)}}>-->
+            <!--                        Delete {levelIndex}. level-->
+            <!--                    </button>-->
+            <!--                    {#each level as wall, index}-->
+            <!--{@const point1 = {x: wall.p1.x, y: wall.p1.y}}-->
+            <!--{@const point2 = {x: wall.p2.x, y: wall.p2.y}}-->
+            <!--                        <div role="none" class="card" onmouseenter={() => {selectedCard = index}}-->
+            <!--                             onfocus={() => {selectedCard = index}}>-->
+            <!--                            <p class="card-title">{wall.objectType} {index + 1}</p>-->
+            <!--                            <div role="none" class="icon-container"-->
+            <!--                                 onclick={() => sceneManager.removeObject(index, selectedObjectLevel)}>-->
+            <!--                                <svg viewBox="0 0 448 512">-->
+            <!--                                    <path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z"/>-->
+            <!--                                </svg>-->
+            <!--                            </div>-->
+            <!--                        </div>-->
+            <!--                    {/each}-->
+            <!--                {/if}-->
+            <!--            {/each}-->
         </div>
     </div>
 </div>
@@ -422,12 +329,6 @@
         }
       }
     }
-  }
-
-  input[type="number"]::-webkit-inner-spin-button,
-  input[type="number"]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
   }
 
   input[type="number"]:focus {
